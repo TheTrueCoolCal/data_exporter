@@ -4,7 +4,6 @@
 import subprocess, sys
 
 #Files being exported
-files: list[str] = []
 
 #sys.exit function
 def sys_exit(input):
@@ -12,7 +11,7 @@ def sys_exit(input):
         sys.exit(0)
 
 #File search function
-def file_searcher(file_name, type="", file_type="", extension="") -> tuple[int, list[str]]:
+def file_searcher(file_name, type="", file_type="", extension=""):
     while True:
         command = [f"sudo", "find", "/", type, file_type, "-iname", f"*{file_name}*{extension}"]
         output = subprocess.run(command, shell=False, capture_output=True)
@@ -32,19 +31,20 @@ def file_searcher(file_name, type="", file_type="", extension="") -> tuple[int, 
             return file_index, file_list
         else:
             while 1:
-                failed = input("File could not be found. Would you like to try again? Yes or No:")
+                failed = input("File could not be found. Would you like to try again? Yes or No:\n")
                 if failed.lower() == "yes":
-                    return 1, 1
+                    return "error", "error"
                 elif failed.lower() == "no":
                     sys.exit()
                 else:
                     print("Input not regonized please try again.")
-                continue
+                #continue
         
                     
 
 #File search
 def file_search():
+
     while 1:
         #File being exported
         file_name: str = input("Please enter the file you wish to export:\n")
@@ -61,22 +61,28 @@ def file_search():
                 type = "-type"
                 file_type = "f"
                 file_index, file_list = file_searcher(file_name, type, file_type, extension)
-        file_index, file_list = file_searcher(file_name)
-        if file_index and file_list == 1:
+        else:
+            file_index, file_list = file_searcher(file_name)
+        if file_index == "error":
             continue
         
-
+    #while 1:
         #Export location
         export = input("Where would you like to export to? Please provide the full path.\n") 
-        export_locations, export_list = file_searcher(export, "-type", "d")
-        command = ["sudo", "cp", f"{file_list[file_index]}", f"{export_list[export_locations]}"]
-        subprocess.run(command)
-        while True:
-            loop = input("Your file has been exported. Do you wish to export another? Type Yes to export another or No to close the program.\n")
-            if loop.lower() == "yes":
-                break
-            elif loop.lower() == "no":
-                sys.exit()
-            else:
-                print("Input unregonized. Please try again.")
+
+        while 1:
+            export_locations, export_list = file_searcher(export, "-type", "d")
+            if export_locations or export_locations == "error":
                 continue
+            print(export_list)
+            command = ["sudo", "cp", f"{file_list[file_index]}", f"{export_list[export_locations]}"]
+            subprocess.run(command)
+            while True:
+                loop = input("Your file has been exported. Do you wish to export another? Type Yes to export another or No to close the program.\n")
+                if loop.lower() == "yes":
+                    break
+                elif loop.lower() == "no":
+                    sys.exit()
+                else:
+                    print("Input unregonized. Please try again.")
+                    continue
