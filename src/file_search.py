@@ -1,88 +1,55 @@
-#add type hint, make code cleaner, add try/except block 
-
 #Import
 import subprocess, sys
 
-#Files being exported
 
-#sys.exit function
-def sys_exit(input):
-    if input == 0:
-        sys.exit(0)
-
-#File search function
-def file_searcher(file_name, type="", file_type="", extension=""):
-    while True:
-        command = [f"sudo", "find", "/", type, file_type, "-iname", f"*{file_name}*{extension}"]
-        output = subprocess.run(command, shell=False, capture_output=True)
-        cleaned_output = output.stdout.decode()
-        if len(cleaned_output) > 0:
-            file_list = cleaned_output.split("\n")
-            for i in range(0, len(file_list) - 1):
+#Command class
+class Object:
+    def __init__(self):
+        self.file_name: str = input("Please enter the file you wish to export:\n")
+        self.cmd = ["sudo", "find", "/", "-iname", f"*{self.file_name}*"]
+        
+    def command(self):
+            output = subprocess.run(
+                self.cmd,
+                capture_output=True,
+                text=True
+            )
+            file_list = output.stdout.splitlines()
+            file_dict = {}
+            for i in range(0, len(file_list)):
                 print(f"{i + 1}: {file_list[i]}")
-            output_index = input(f"\nThese are the files found based on your search keyword.\nPlease input the file index that is correct.\n")
-            sys_exit(output_index)
+                file_dict[i + 1] = file_list[i]
+            if len(file_list) <= 0:
+                print("File could not be found. Please try again.\n\n\n\n\n\n")
+                self.command()
             try:
-                file_index = int(output_index)
+                index = int(input(f"\nThis is what was found based on your search keyword.\nPlease input the index that is correct.\n"))
+                self.object_path = file_dict[index]
             except Exception as e:
                     print("Invalid input, please try again.\n\n\n\n\n\n")
-                    continue
-            file_index -= 1
-            return file_index, file_list
-        else:
-            while 1:
-                failed = input("File could not be found. Would you like to try again? Yes or No:\n")
-                if failed.lower() == "yes":
-                    return "error", "error"
-                elif failed.lower() == "no":
-                    sys.exit()
-                else:
-                    print("Input not regonized please try again.")
-                #continue
+                    self.command()
+    
+class File(Object):
+    def __init__(self):
+        super().__init__()
+        self.extension: str = ""
         
-                    
-
-#File search
-def file_search():
-
-    while 1:
-        #File being exported
-        file_name: str = input("Please enter the file you wish to export:\n")
-        sys_exit(file_name)
-        type: str = input("Would you like to spesify a file type? Yes, No\n")
-        sys_exit(type)
-        if type.lower() == "yes":
-            extension: str = input("Please enter the file type: 1 for folder other wise enter the extension .txt .py .md etc:\n")
-            sys_exit(extension)
-            if extension == 1:
-                type, file_type = "-type" "d"
-                file_index, file_list = file_searcher(file_name, type, file_type)
+    def the_type(self, usr_input) -> None:
+        if usr_input.lower() == "yes":
+            self.type = "-type"
+            file_type_input = input("Please enter the file type: d for directory other wise enter the extension .txt .py .md etc:\n")
+            if file_type_input == "d":
+                self.file_type = "d"
             else:
-                type = "-type"
-                file_type = "f"
-                file_index, file_list = file_searcher(file_name, type, file_type, extension)
-        else:
-            file_index, file_list = file_searcher(file_name)
-        if file_index == "error":
-            continue
-        
-    #while 1:
-        #Export location
-        export = input("Where would you like to export to? Please provide the full path.\n") 
+                self.file_type = "f"
+                self.extension = file_type_input
+            self.cmd.insert(2, self.type)
+            self.cmd.insert(3, self.file_type)
 
-        while 1:
-            export_locations, export_list = file_searcher(export, "-type", "d")
-            if export_locations or export_locations == "error":
-                continue
-            print(export_list)
-            command = ["sudo", "cp", f"{file_list[file_index]}", f"{export_list[export_locations]}"]
-            subprocess.run(command)
-            while True:
-                loop = input("Your file has been exported. Do you wish to export another? Type Yes to export another or No to close the program.\n")
-                if loop.lower() == "yes":
-                    break
-                elif loop.lower() == "no":
-                    sys.exit()
-                else:
-                    print("Input unregonized. Please try again.")
-                    continue
+class Directory(Object):
+    def __init__(self):
+        super().__init__()
+        self.type: str = "type"
+        self.file_type: str = "d"
+        self.cmd.insert(2, self.type)
+        self.cmd.insert(3, self.file_type)
